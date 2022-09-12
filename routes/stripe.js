@@ -1,19 +1,27 @@
 const router = require('express').Router();
-const KEY = process.env.STRIPE_KEY;
-const stripe = require('stripe')(KEY);
+const stripe = require('stripe')('sk_test_51KdyjxLztupzaYHvoaPbr9ZixaFfMRfqXoyZVy3S1OsgDwl6DdyZiWOi4UdfGubHnHlKYgTLiS018i0kSRUCpkAG005UEgMpuj');
+const cors = require('cors');
 
-router.post("/payment", (req,res) => {
-  stripe.charges.create({
-    source: req.body.tokenId,
-    amount: req.body.amount,
-    currency: "eu"
-  }, (stripeErr, stripeRes) => {
-    if(stripeErr){
-      res.status(500).json(stripeErr)
-    }else{
-      res.status(200).json(stripeRes)
-    }
-  })
+router.post("/", cors(), async (req, res) => {
+  let { amount, id } = req.body;
+  console.log("amount:" + amount, id);
+  
+  try{
+    const payment = await stripe.paymentIntents.create({
+      amount: amount,
+      currency: "EUR",
+      description: "Your Company Description",
+      payment_method: id,
+      confirm: true
+    });
+    res.status(200).json({
+      message: "Payement effectué",
+      success: true,
+    })
+  }catch(err){
+    res.status(500).json(err)
+    console.log(err)
+  }
 })
 
 
